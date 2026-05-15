@@ -20,6 +20,7 @@ import { useBistroTheme } from "../hooks/useBistroTheme";
 import { BistroColors } from "../theme/bistroTheme";
 
 const API_URL = "http://localhost:3001";
+// const API_URL = "http://100.76.12.180:3001";
 interface Message {
   id: string;
   role: "user" | "assistant";
