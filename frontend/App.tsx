@@ -1,15 +1,19 @@
-import 'react-native-gesture-handler';
-import React, { useMemo } from "react";
+import "react-native-gesture-handler";
+import React, { useEffect, useMemo, useState } from "react";
 import { NavigationContainer, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, useColorScheme } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
 import Toast from "react-native-toast-message";
 import MenuScreen from "./src/screens/MenuScreen";
 import CartScreen from "./src/screens/CartScreen";
 import AIScreen from "./src/screens/AIScreen";
+import BrandedSplash from "./src/components/BrandedSplash";
 import { useCartStore } from "./src/store/cartStore";
 import { getBistroColors } from "./src/theme/bistroTheme";
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const Tab = createBottomTabNavigator();
 
@@ -33,6 +37,19 @@ export default function App() {
   const scheme = useColorScheme();
   const colors = getBistroColors(scheme);
   const isDark = scheme === "dark";
+  const [appReady, setAppReady] = useState(false);
+
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    async function prepare() {
+      await new Promise((resolve) => setTimeout(resolve, 1800));
+      setAppReady(true);
+    }
+    prepare();
+  }, []);
 
   const navTheme = useMemo(
     () => ({
@@ -48,6 +65,10 @@ export default function App() {
     }),
     [isDark, colors]
   );
+
+  if (!appReady) {
+    return <BrandedSplash />;
+  }
 
   return (
     <NavigationContainer theme={navTheme}>
