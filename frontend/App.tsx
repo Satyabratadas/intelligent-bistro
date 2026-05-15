@@ -113,16 +113,17 @@
 // });
 
 import 'react-native-gesture-handler';
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import React, { useMemo } from "react";
+import { NavigationContainer, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, useColorScheme } from "react-native";
 import Toast from "react-native-toast-message";
 import MenuScreen from "./src/screens/MenuScreen";
 import CartScreen from "./src/screens/CartScreen";
 import AIScreen from "./src/screens/AIScreen";
 import { useCartStore } from "./src/store/cartStore";
+import { getBistroColors } from "./src/theme/bistroTheme";
 
 const Tab = createBottomTabNavigator();
 
@@ -143,17 +144,36 @@ function CartTabIcon({ color, size }: { color: string; size: number }) {
 }
 
 export default function App() {
+  const scheme = useColorScheme();
+  const colors = getBistroColors(scheme);
+  const isDark = scheme === "dark";
+
+  const navTheme = useMemo(
+    () => ({
+      ...(isDark ? DarkTheme : DefaultTheme),
+      colors: {
+        ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+        background: colors.background,
+        card: colors.tabBar,
+        border: colors.border,
+        text: colors.text,
+        primary: colors.accent,
+      },
+    }),
+    [isDark, colors]
+  );
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#FF6B6B",
-          tabBarInactiveTintColor: "#999",
+          tabBarActiveTintColor: colors.accent,
+          tabBarInactiveTintColor: colors.tabInactive,
           tabBarStyle: {
-            backgroundColor: "#fff",
+            backgroundColor: colors.tabBar,
             borderTopWidth: 1,
-            borderTopColor: "#F0F0F0",
+            borderTopColor: colors.border,
             paddingBottom: 8,
             paddingTop: 8,
             height: 60,

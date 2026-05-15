@@ -1,21 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   Alert,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from "react-native";
 import axios from "axios";
 import { useCartStore } from "../store/cartStore";
 import { Ionicons } from "@expo/vector-icons";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
+import { useBistroTheme } from "../hooks/useBistroTheme";
+import { BistroColors } from "../theme/bistroTheme";
 
-// const API_URL = "http://localhost:3001";
 const API_URL = "http://100.76.12.180:3001";
 
 interface MenuItem {
@@ -43,11 +46,108 @@ const CATEGORY_COLORS: Record<string, string> = {
   desserts: "#AB47BC",
 };
 
+function createStyles(c: BistroColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    header: {
+      backgroundColor: c.surface,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: c.border,
+    },
+    headerTitle: { fontSize: 24, fontWeight: "700", color: c.text },
+    headerSubtitle: { fontSize: 13, color: c.textSecondary, marginTop: 2 },
+    categoryBar: {
+      backgroundColor: c.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: c.border,
+    },
+    categoryScrollContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      gap: 8,
+    },
+    categoryBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 20,
+      backgroundColor: c.chip,
+      gap: 6,
+      ...(Platform.OS === "android" ? { overflow: "hidden" as const } : {}),
+    },
+    categoryBtnActive: { backgroundColor: c.accent },
+    categoryIcon: {
+      fontSize: 16,
+      lineHeight: 22,
+      ...(Platform.OS === "android" ? { includeFontPadding: false } : {}),
+    },
+    categoryLabel: {
+      fontSize: 13,
+      lineHeight: 22,
+      color: c.chipText,
+      fontWeight: "600",
+      textTransform: "capitalize",
+      ...(Platform.OS === "android" ? { includeFontPadding: false } : {}),
+    },
+    categoryLabelActive: { color: "#fff" },
+    listContent: { padding: 16, paddingBottom: 100 },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: c.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    cardHeader: { flexDirection: "row", marginBottom: 12 },
+    categoryEmoji: { fontSize: 40, marginRight: 12 },
+    cardInfo: { flex: 1 },
+    itemName: { fontSize: 16, fontWeight: "600", color: c.text, marginBottom: 4 },
+    itemDesc: { fontSize: 13, color: c.textSecondary, lineHeight: 18, marginBottom: 8 },
+    cardFooter: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    itemPrice: { fontSize: 18, fontWeight: "700", color: c.accent },
+    tagRow: { flexDirection: "row", gap: 4 },
+    tag: {
+      backgroundColor: c.chip,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+    },
+    tagText: { fontSize: 11, color: c.chipText },
+    addBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 10,
+      borderRadius: 12,
+      gap: 4,
+    },
+    addBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+    centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+    loadingText: { marginTop: 12, color: c.textSecondary, fontSize: 14 },
+  });
+}
+
 export default function MenuScreen() {
+  const { colors } = useBistroTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { addItem, totalItems } = useCartStore();
+  const { addItem } = useCartStore();
 
   const categories = ["all", "starters", "mains", "sides", "drinks", "desserts"];
 
@@ -59,7 +159,7 @@ export default function MenuScreen() {
     try {
       const res = await axios.get(`${API_URL}/api/menu`);
       setMenu(res.data);
-    } catch (err) {
+    } catch {
       Alert.alert("Error", "Could not load menu. Is the backend running?");
     } finally {
       setLoading(false);
@@ -71,18 +171,6 @@ export default function MenuScreen() {
       ? menu
       : menu.filter((item) => item.category === selectedCategory);
 
-  // const handleAddToCart = (item: MenuItem) => {
-  //   addItem({
-  //     item_id: item.id,
-  //     item_name: item.name,
-  //     price: item.price,
-  //     quantity: 1,
-  //   });
-  //   Alert.alert("Added! ✓", `${item.name} added to cart`, [
-  //     { text: "OK", style: "default" },
-  //   ]);
-  // };
-
   const handleAddToCart = (item: MenuItem) => {
     addItem({
       item_id: item.id,
@@ -91,11 +179,11 @@ export default function MenuScreen() {
       quantity: 1,
     });
     Toast.show({
-      type: 'success',
-      text1: '✓ Added to cart!',
+      type: "success",
+      text1: "✓ Added to cart!",
       text2: item.name,
       visibilityTime: 2000,
-      position: 'bottom',
+      position: "bottom",
     });
   };
 
@@ -125,7 +213,7 @@ export default function MenuScreen() {
       <TouchableOpacity
         style={[
           styles.addBtn,
-          { backgroundColor: CATEGORY_COLORS[item.category] || "#FF6B6B" },
+          { backgroundColor: CATEGORY_COLORS[item.category] || colors.accent },
         ]}
         onPress={() => handleAddToCart(item)}
       >
@@ -137,45 +225,48 @@ export default function MenuScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle={colors.statusBar} backgroundColor={colors.surface} />
 
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🍽️ The Intelligent Bistro</Text>
         <Text style={styles.headerSubtitle}>Fresh • Delicious • Smart</Text>
       </View>
 
-      {/* Category Filter */}
-      <FlatList
-        horizontal
-        data={categories}
-        keyExtractor={(item) => item}
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoryList}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.categoryBtn,
-              selectedCategory === item && styles.categoryBtnActive,
-            ]}
-            onPress={() => setSelectedCategory(item)}
-          >
-            <Text
-              style={[
-                styles.categoryBtnText,
-                selectedCategory === item && styles.categoryBtnTextActive,
-              ]}
-            >
-              {item === "all" ? "🍽️ All" : `${CATEGORY_ICONS[item]} ${item}`}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={styles.categoryBar}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryScrollContent}
+        >
+          {categories.map((item) => {
+            const isActive = selectedCategory === item;
+            const label = item === "all" ? "All" : item;
+            const icon = item === "all" ? "🍽️" : CATEGORY_ICONS[item];
+            return (
+              <TouchableOpacity
+                key={item}
+                activeOpacity={0.75}
+                style={[styles.categoryBtn, isActive && styles.categoryBtnActive]}
+                onPress={() => setSelectedCategory(item)}
+              >
+                <Text style={styles.categoryIcon}>{icon}</Text>
+                <Text
+                  style={[
+                    styles.categoryLabel,
+                    isActive && styles.categoryLabelActive,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
-      {/* Menu List */}
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#FF6B6B" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading menu...</Text>
         </View>
       ) : (
@@ -190,60 +281,3 @@ export default function MenuScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FA" },
-  header: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  headerTitle: { fontSize: 24, fontWeight: "700", color: "#1A1A1A" },
-  headerSubtitle: { fontSize: 13, color: "#888", marginTop: 2 },
-  categoryList: { paddingHorizontal: 16, paddingVertical: 12, maxHeight: 56 },
-  categoryBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F0F0F0",
-    marginRight: 8,
-  },
-  categoryBtnActive: { backgroundColor: "#FF6B6B" },
-  categoryBtnText: { fontSize: 13, color: "#666", fontWeight: "500", textTransform: "capitalize" },
-  categoryBtnTextActive: { color: "#fff" },
-  listContent: { padding: 16, paddingBottom: 100 },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardHeader: { flexDirection: "row", marginBottom: 12 },
-  categoryEmoji: { fontSize: 40, marginRight: 12 },
-  cardInfo: { flex: 1 },
-  itemName: { fontSize: 16, fontWeight: "600", color: "#1A1A1A", marginBottom: 4 },
-  itemDesc: { fontSize: 13, color: "#888", lineHeight: 18, marginBottom: 8 },
-  cardFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  itemPrice: { fontSize: 18, fontWeight: "700", color: "#FF6B6B" },
-  tagRow: { flexDirection: "row", gap: 4 },
-  tag: { backgroundColor: "#F0F0F0", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  tagText: { fontSize: 11, color: "#666" },
-  addBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 4,
-  },
-  addBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 12, color: "#888", fontSize: 14 },
-});
