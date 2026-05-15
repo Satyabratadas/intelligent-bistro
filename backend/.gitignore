@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 
+.expo
 # Environment variables (NEVER commit this — contains your API key)
 .env
 
