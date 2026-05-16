@@ -20,7 +20,6 @@ import { useBistroTheme } from "../hooks/useBistroTheme";
 import { BistroColors } from "../theme/bistroTheme";
 
 const API_URL = "http://localhost:3001";
-// const API_URL = "http://100.76.12.180:3001";
 
 interface MenuItem {
   id: string;
@@ -174,7 +173,6 @@ export default function MenuScreen() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  // const { addItem } = useCartStore();
   const { items, addItem, decreaseQuantity } = useCartStore();
 
   const categories = ["all", "starters", "mains", "sides", "drinks", "desserts"];
@@ -214,42 +212,6 @@ export default function MenuScreen() {
       position: "bottom",
     });
   };
-
-  // const renderItem = ({ item }: { item: MenuItem }) => (
-  //   <View style={styles.card}>
-  //     <View style={styles.cardHeader}>
-  //       <Text style={styles.categoryEmoji}>
-  //         {CATEGORY_ICONS[item.category] || "🍽️"}
-  //       </Text>
-  //       <View style={styles.cardInfo}>
-  //         <Text style={styles.itemName}>{item.name}</Text>
-  //         <Text style={styles.itemDesc} numberOfLines={2}>
-  //           {item.description}
-  //         </Text>
-  //         <View style={styles.cardFooter}>
-  //           <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
-  //           <View style={styles.tagRow}>
-  //             {item.tags.slice(0, 2).map((tag) => (
-  //               <View key={tag} style={styles.tag}>
-  //                 <Text style={styles.tagText}>{tag}</Text>
-  //               </View>
-  //             ))}
-  //           </View>
-  //         </View>
-  //       </View>
-  //     </View>
-  //     <TouchableOpacity
-  //       style={[
-  //         styles.addBtn,
-  //         { backgroundColor: CATEGORY_COLORS[item.category] || colors.accent },
-  //       ]}
-  //       onPress={() => handleAddToCart(item)}
-  //     >
-  //       <Ionicons name="add" size={20} color="#fff" />
-  //       <Text style={styles.addBtnText}>Add</Text>
-  //     </TouchableOpacity>
-  //   </View>
-  // );
   const renderItem = ({ item }: { item: MenuItem }) => {
   const cartItem = items.find((cart) => cart.item_id === item.id);
   const itemColor = CATEGORY_COLORS[item.category] || colors.accent;
